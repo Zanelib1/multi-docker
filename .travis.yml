@@ -1,0 +1,23 @@
+language: generic
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t zanelib1/react-test -f ./client/Dockerfile.dev
+
+script:
+  - docker run -e CI=true zanelib1/react-test npm test
+
+after_success:
+  - docker build -t zanelib1/multi-client ./client
+  - docker build -t zanelib1/multi-nginx ./nginx
+  - docker build -t zanelib1/multi-server ./server
+  - docker build -t zanelib1/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push them to docker hub
+  - docker push zanelib1/multi-client
+  - docker push zanelib1/multi-ngiinx
+  - docker push zanelib1/multi-server
+  - docker push zanelib1/multi-worker
